@@ -1,24 +1,35 @@
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  eachDayOfInterval,
+  format,
+  isValid,
+  parse,
+  set,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns"
+
 export type CalendarView = "day" | "week" | "month"
 
-const DAY_MS = 24 * 60 * 60 * 1000
+export const DAY_MS = 24 * 60 * 60 * 1000
+
+const SUNDAY_WEEK_START = { weekStartsOn: 0 as const }
 
 export function isCalendarView(value: string | null): value is CalendarView {
   return value === "day" || value === "week" || value === "month"
 }
 
 export function parseDateParam(value: string | null) {
-  if (value === null || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+  if (value === null) {
     return startOfDay(new Date())
   }
 
-  const [year, month, day] = value.split("-").map(Number)
-  const date = new Date(year, month - 1, day)
+  const date = parse(value, "yyyy-MM-dd", new Date())
 
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (!isValid(date) || format(date, "yyyy-MM-dd") !== value) {
     return startOfDay(new Date())
   }
 
@@ -26,43 +37,7 @@ export function parseDateParam(value: string | null) {
 }
 
 export function formatDateParam(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-
-  return `${year}-${month}-${day}`
-}
-
-export function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-}
-
-export function addDays(date: Date, days: number) {
-  const next = new Date(date)
-  next.setDate(next.getDate() + days)
-  return next
-}
-
-export function addMonths(date: Date, months: number) {
-  const next = new Date(date)
-  next.setMonth(next.getMonth() + months)
-  return next
-}
-
-export function startOfWeek(date: Date) {
-  return addDays(startOfDay(date), -date.getDay())
-}
-
-export function endOfWeek(date: Date) {
-  return addDays(startOfWeek(date), 7)
-}
-
-export function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
-}
-
-export function endOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 1)
+  return format(date, "yyyy-MM-dd")
 }
 
 export function getVisibleRange(view: CalendarView, date: Date) {
@@ -72,55 +47,52 @@ export function getVisibleRange(view: CalendarView, date: Date) {
   }
 
   if (view === "week") {
-    return { start: startOfWeek(date), end: endOfWeek(date) }
+    const start = startOfWeek(date, SUNDAY_WEEK_START)
+    return { start, end: addWeeks(start, 1) }
   }
 
   const monthStart = startOfMonth(date)
-  const monthEnd = endOfMonth(date)
+  const nextMonthStart = addMonths(monthStart, 1)
 
   return {
-    start: startOfWeek(monthStart),
-    end: addDays(startOfWeek(monthEnd), 7),
+    start: startOfWeek(monthStart, SUNDAY_WEEK_START),
+    end: addWeeks(startOfWeek(nextMonthStart, SUNDAY_WEEK_START), 1),
   }
 }
 
 export function getMonthGridDays(date: Date) {
   const { start, end } = getVisibleRange("month", date)
-  const days: Date[] = []
 
-  for (let day = start; day < end; day = addDays(day, 1)) {
-    days.push(day)
-  }
-
-  return days
+  return eachDayOfInterval({
+    start,
+    end: addDays(end, -1),
+  })
 }
 
 export function getTimeSlotDate(date: Date, hour: number, minute = 0) {
-  const slot = startOfDay(date)
-  slot.setHours(hour, minute, 0, 0)
-  return slot
+  return set(startOfDay(date), {
+    hours: hour,
+    minutes: minute,
+    seconds: 0,
+    milliseconds: 0,
+  })
 }
 
 export function getNextDate(view: CalendarView, date: Date) {
   if (view === "day") return addDays(date, 1)
-  if (view === "week") return addDays(date, 7)
+  if (view === "week") return addWeeks(date, 1)
   return addMonths(date, 1)
 }
 
 export function getPreviousDate(view: CalendarView, date: Date) {
   if (view === "day") return addDays(date, -1)
-  if (view === "week") return addDays(date, -7)
+  if (view === "week") return addWeeks(date, -1)
   return addMonths(date, -1)
 }
 
 export function getRangeLabel(view: CalendarView, date: Date) {
   if (view === "day") {
-    return new Intl.DateTimeFormat(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(date)
+    return format(date, "EEEE, MMMM d, yyyy")
   }
 
   if (view === "week") {
@@ -128,18 +100,9 @@ export function getRangeLabel(view: CalendarView, date: Date) {
     return `${formatShortDate(start)} – ${formatShortDate(addDays(end, -1))}`
   }
 
-  return new Intl.DateTimeFormat(undefined, {
-    month: "long",
-    year: "numeric",
-  }).format(date)
+  return format(date, "MMMM yyyy")
 }
 
 function formatShortDate(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date)
+  return format(date, "MMM d, yyyy")
 }
-
-export { DAY_MS }

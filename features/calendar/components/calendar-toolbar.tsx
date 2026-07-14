@@ -2,6 +2,13 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { type CalendarView } from "../lib/date-utils"
 
 export function CalendarToolbar({
@@ -37,18 +44,22 @@ export function CalendarToolbar({
         <div className="text-lg font-medium">{label}</div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         View
-        <select
-          className="h-8 rounded-lg border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        <Select
           value={view}
-          onChange={(event) => onViewChange(event.target.value as CalendarView)}
+          onValueChange={(value) => onViewChange(value as CalendarView)}
         >
-          <option value="day">Day</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-        </select>
-      </label>
+          <SelectTrigger aria-label="Calendar view">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="day">Day</SelectItem>
+            <SelectItem value="week">Week</SelectItem>
+            <SelectItem value="month">Month</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </header>
   )
 }

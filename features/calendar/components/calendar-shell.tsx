@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { startOfDay } from "date-fns"
 import { CalendarToolbar } from "./calendar-toolbar"
 import {
   formatDateParam,
@@ -10,7 +11,6 @@ import {
   getVisibleRange,
   isCalendarView,
   parseDateParam,
-  startOfDay,
   type CalendarView,
 } from "../lib/date-utils"
 
