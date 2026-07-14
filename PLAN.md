@@ -44,8 +44,8 @@ Build a Google Calendar-style app with authenticated calendar event management, 
 
 ### 3. Calendar UI foundation
 
-- [ ] Create feature folder: `features/calendar/`.
-- [ ] Add reusable calendar components.
+- [x] Create feature folder: `features/calendar/`.
+- [x] Add reusable calendar components.
   - `calendar-shell`
   - `calendar-toolbar`
   - `day-view`
@@ -53,9 +53,9 @@ Build a Google Calendar-style app with authenticated calendar event management, 
   - `month-view`
   - `event-card`
   - `time-grid`
-- [ ] Render events from Convex in all three views.
-- [ ] Use CSS grid/flex layout for Google Calendar-like structure.
-- [ ] Keep UI responsive enough for desktop first, with mobile follow-up if needed.
+- [x] Render events from Convex in all three views.
+- [x] Use CSS grid/flex layout for Google Calendar-like structure.
+- [x] Keep UI responsive enough for desktop first, with mobile follow-up if needed.
 
 ### 4. Event create/edit UX
 
