@@ -26,11 +26,11 @@ const eventSchema = z
     description: z.string(),
     location: z.string(),
     color: z.string(),
-    startAt: z.string().min(1, "Required"),
-    endAt: z.string().min(1, "Required"),
+    startAt: z.coerce.date<string>({ error: "Required" }),
+    endAt: z.coerce.date<string>({ error: "Required" }),
     allDay: z.boolean(),
   })
-  .refine((value) => new Date(value.endAt).getTime() > new Date(value.startAt).getTime(), {
+  .refine((value) => value.endAt.getTime() > value.startAt.getTime(), {
     message: "End time must be after start time",
     path: ["endAt"],
   })
@@ -63,14 +63,15 @@ export function EventDialog({
     },
     validators: { onSubmit: eventSchema },
     onSubmit: async ({ value }) => {
+      const parsed = eventSchema.parse(value)
       const payload = {
-        title: value.title,
-        description: value.description || undefined,
-        location: value.location || undefined,
-        color: value.color || undefined,
-        startAt: new Date(value.startAt).getTime(),
-        endAt: new Date(value.endAt).getTime(),
-        allDay: value.allDay,
+        title: parsed.title,
+        description: parsed.description || undefined,
+        location: parsed.location || undefined,
+        color: parsed.color || undefined,
+        startAt: parsed.startAt.getTime(),
+        endAt: parsed.endAt.getTime(),
+        allDay: parsed.allDay,
       }
 
       if (event) {

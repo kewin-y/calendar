@@ -21,9 +21,9 @@ export function EventCard({
         onClick?.(event)
       }}
       className={cn(
-        "w-full overflow-hidden rounded-md border border-blue-500/20 bg-blue-500 px-2 py-1 text-left text-xs text-white shadow-sm",
+        "w-full overflow-hidden rounded-md px-2 py-1 text-left text-xs text-white shadow-sm",
         compact ? "truncate" : "space-y-0.5",
-        className,
+        className
       )}
       style={event.color ? { backgroundColor: event.color } : undefined}
     >
