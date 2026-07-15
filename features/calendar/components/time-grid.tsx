@@ -1,4 +1,4 @@
-import { addDays, format, isSameDay, isToday, startOfDay } from "date-fns"
+import { addDays, format, isToday, startOfDay } from "date-fns"
 import { type Doc } from "@/convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { getVisibleRange } from "../lib/date-utils"
@@ -48,7 +48,7 @@ export function TimeGrid({
 
         {visibleDays.map((day) => {
           const dayEvents = getPositionedEvents(
-            events.filter((event) => isSameDay(event.startAt, day)),
+            events.filter((event) => eventOccursOnDay(event, day)),
           )
 
           return (
@@ -71,6 +71,7 @@ export function TimeGrid({
                 <PositionedEvent
                   key={positionedEvent.event._id}
                   positionedEvent={positionedEvent}
+                  day={day}
                   onEditEvent={onEditEvent}
                 />
               ))}
@@ -90,16 +91,21 @@ type PositionedCalendarEvent = {
 
 function PositionedEvent({
   positionedEvent,
+  day,
   onEditEvent,
 }: {
   positionedEvent: PositionedCalendarEvent
+  day: Date
   onEditEvent: (event: Doc<"events">) => void
 }) {
   const { event, column, columnCount } = positionedEvent
-  const start = new Date(event.startAt)
-  const end = new Date(event.endAt)
+  const dayStart = startOfDay(day).getTime()
+  const dayEnd = addDays(startOfDay(day), 1).getTime()
+  const segmentStart = Math.max(event.startAt, dayStart)
+  const segmentEnd = Math.min(event.endAt, dayEnd)
+  const start = new Date(segmentStart)
   const startMinutes = start.getHours() * 60 + start.getMinutes()
-  const durationMinutes = Math.max(30, (end.getTime() - start.getTime()) / 60000)
+  const durationMinutes = Math.max(30, (segmentEnd - segmentStart) / 60000)
   const width = 100 / columnCount
 
   return (
@@ -115,6 +121,13 @@ function PositionedEvent({
       <EventCard event={event} className="h-full" onClick={onEditEvent} />
     </div>
   )
+}
+
+function eventOccursOnDay(event: Doc<"events">, day: Date) {
+  const dayStart = startOfDay(day).getTime()
+  const dayEnd = addDays(startOfDay(day), 1).getTime()
+
+  return event.startAt < dayEnd && event.endAt > dayStart
 }
 
 function getPositionedEvents(events: Doc<"events">[]): PositionedCalendarEvent[] {
