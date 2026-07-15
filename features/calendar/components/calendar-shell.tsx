@@ -58,7 +58,7 @@ export function CalendarShell() {
   }
 
   return (
-    <main className="flex min-h-svh flex-col bg-background text-foreground">
+    <main className="flex h-svh flex-col overflow-hidden bg-background text-foreground">
       <CalendarToolbar
         view={view}
         label={getRangeLabel(view, date)}
@@ -69,7 +69,7 @@ export function CalendarShell() {
         onCreateEvent={() => openCreateEvent(new Date())}
       />
 
-      <section className="flex min-h-0 flex-1 flex-col p-4">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
         {events === undefined ? (
           <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground shadow-sm">
             Loading calendar…

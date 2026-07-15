@@ -37,7 +37,7 @@ export function TimeGrid({
         ))}
       </div>
 
-      <div className="grid flex-1 overflow-auto" style={{ gridTemplateColumns: `4rem repeat(${days}, minmax(0, 1fr))` }}>
+      <div className="grid min-h-0 flex-1 overflow-auto" style={{ gridTemplateColumns: `4rem repeat(${days}, minmax(0, 1fr))` }}>
         <div className="relative" style={{ height: HOURS.length * HOUR_HEIGHT }}>
           {HOURS.map((hour) => (
             <div key={hour} className="relative border-b pr-2 text-right text-xs text-muted-foreground" style={{ height: HOUR_HEIGHT }}>
