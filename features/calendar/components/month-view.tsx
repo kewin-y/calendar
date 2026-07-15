@@ -9,9 +9,13 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 export function MonthView({
   date,
   events,
+  onCreateEvent,
+  onEditEvent,
 }: {
   date: Date
   events: Doc<"events">[]
+  onCreateEvent: (start: Date) => void
+  onEditEvent: (event: Doc<"events">) => void
 }) {
   const days = getMonthGridDays(date)
 
@@ -31,6 +35,7 @@ export function MonthView({
           return (
             <div
               key={day.toISOString()}
+              onDoubleClick={() => onCreateEvent(day)}
               className={cn(
                 "min-h-28 overflow-hidden border-r border-b p-2 last:border-r-0",
                 !isSameMonth(day, date) && "bg-muted/30 text-muted-foreground",
@@ -46,7 +51,7 @@ export function MonthView({
               </div>
               <div className="space-y-1">
                 {dayEvents.slice(0, 3).map((event) => (
-                  <EventCard key={event._id} event={event} compact />
+                  <EventCard key={event._id} event={event} compact onClick={onEditEvent} />
                 ))}
                 {dayEvents.length > 3 && (
                   <div className="text-xs text-muted-foreground">+{dayEvents.length - 3} more</div>

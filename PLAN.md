@@ -59,12 +59,12 @@ Build a Google Calendar-style app with authenticated calendar event management, 
 
 ### 4. Event create/edit UX
 
-- [ ] Add an event create/edit form using TanStack Form + Zod.
-- [ ] Support creating from toolbar button.
-- [ ] Support creating by clicking a day cell/time slot.
-- [ ] Support editing by clicking an existing event.
-- [ ] Add delete support.
-- [ ] Use shadcn/Base UI-compatible components and avoid `asChild`.
+- [x] Add an event create/edit form using TanStack Form + Zod.
+- [x] Support creating from toolbar button.
+- [x] Support creating by clicking a day cell/time slot.
+- [x] Support editing by clicking an existing event.
+- [x] Add delete support.
+- [x] Use shadcn/Base UI-compatible components and avoid `asChild`.
 
 ### 5. Drag-and-drop rescheduling with `@dnd-kit/react`
 

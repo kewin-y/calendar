@@ -11,10 +11,14 @@ export function TimeGrid({
   date,
   events,
   days = 1,
+  onCreateEvent,
+  onEditEvent,
 }: {
   date: Date
   events: Doc<"events">[]
   days?: 1 | 7
+  onCreateEvent: (start: Date) => void
+  onEditEvent: (event: Doc<"events">) => void
 }) {
   const rangeStart = days === 7 ? getVisibleRange("week", date).start : startOfDay(date)
   const visibleDays = Array.from({ length: days }, (_, index) => addDays(rangeStart, index))
@@ -42,38 +46,127 @@ export function TimeGrid({
           ))}
         </div>
 
-        {visibleDays.map((day) => (
-          <div key={day.toISOString()} className="relative border-l" style={{ height: HOURS.length * HOUR_HEIGHT }}>
-            {HOURS.map((hour) => (
-              <div key={hour} className="border-b" style={{ height: HOUR_HEIGHT }} />
-            ))}
-            {events
-              .filter((event) => isSameDay(event.startAt, day))
-              .map((event) => (
-                <PositionedEvent key={event._id} event={event} />
+        {visibleDays.map((day) => {
+          const dayEvents = getPositionedEvents(
+            events.filter((event) => isSameDay(event.startAt, day)),
+          )
+
+          return (
+            <div key={day.toISOString()} className="relative border-l" style={{ height: HOURS.length * HOUR_HEIGHT }}>
+              {HOURS.map((hour) => (
+                <button
+                  key={hour}
+                  type="button"
+                  className="block w-full border-b text-left"
+                  style={{ height: HOUR_HEIGHT }}
+                  onDoubleClick={() => {
+                    const start = startOfDay(day)
+                    start.setHours(hour, 0, 0, 0)
+                    onCreateEvent(start)
+                  }}
+                  aria-label={`Create event on ${format(day, "MMM d")} at ${format(new Date(2000, 0, 1, hour), "h a")}`}
+                />
               ))}
-          </div>
-        ))}
+              {dayEvents.map((positionedEvent) => (
+                <PositionedEvent
+                  key={positionedEvent.event._id}
+                  positionedEvent={positionedEvent}
+                  onEditEvent={onEditEvent}
+                />
+              ))}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function PositionedEvent({ event }: { event: Doc<"events"> }) {
+type PositionedCalendarEvent = {
+  event: Doc<"events">
+  column: number
+  columnCount: number
+}
+
+function PositionedEvent({
+  positionedEvent,
+  onEditEvent,
+}: {
+  positionedEvent: PositionedCalendarEvent
+  onEditEvent: (event: Doc<"events">) => void
+}) {
+  const { event, column, columnCount } = positionedEvent
   const start = new Date(event.startAt)
   const end = new Date(event.endAt)
   const startMinutes = start.getHours() * 60 + start.getMinutes()
   const durationMinutes = Math.max(30, (end.getTime() - start.getTime()) / 60000)
+  const width = 100 / columnCount
 
   return (
     <div
-      className="absolute right-1 left-1 z-10"
+      className="absolute z-10 px-0.5"
       style={{
         top: (startMinutes / 60) * HOUR_HEIGHT,
         height: (durationMinutes / 60) * HOUR_HEIGHT,
+        left: `${column * width}%`,
+        width: `${width}%`,
       }}
     >
-      <EventCard event={event} className="h-full" />
+      <EventCard event={event} className="h-full" onClick={onEditEvent} />
     </div>
   )
+}
+
+function getPositionedEvents(events: Doc<"events">[]): PositionedCalendarEvent[] {
+  const sortedEvents = [...events].sort((a, b) => {
+    if (a.startAt !== b.startAt) return a.startAt - b.startAt
+    return a.endAt - b.endAt
+  })
+  const clusters: Doc<"events">[][] = []
+  let currentCluster: Doc<"events">[] = []
+  let currentClusterEnd = 0
+
+  for (const event of sortedEvents) {
+    if (currentCluster.length === 0 || event.startAt < currentClusterEnd) {
+      currentCluster.push(event)
+      currentClusterEnd = Math.max(currentClusterEnd, event.endAt)
+      continue
+    }
+
+    clusters.push(currentCluster)
+    currentCluster = [event]
+    currentClusterEnd = event.endAt
+  }
+
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster)
+  }
+
+  return clusters.flatMap(positionCluster)
+}
+
+function positionCluster(events: Doc<"events">[]): PositionedCalendarEvent[] {
+  const columns: Doc<"events">[][] = []
+  const positionedEvents: PositionedCalendarEvent[] = []
+
+  for (const event of events) {
+    const column = columns.findIndex((columnEvents) => {
+      const lastEvent = columnEvents.at(-1)
+      return lastEvent === undefined || lastEvent.endAt <= event.startAt
+    })
+    const targetColumn = column === -1 ? columns.length : column
+
+    columns[targetColumn] ??= []
+    columns[targetColumn].push(event)
+    positionedEvents.push({
+      event,
+      column: targetColumn,
+      columnCount: 1,
+    })
+  }
+
+  return positionedEvents.map((positionedEvent) => ({
+    ...positionedEvent,
+    columnCount: columns.length,
+  }))
 }

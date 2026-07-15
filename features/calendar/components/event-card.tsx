@@ -6,15 +6,22 @@ export function EventCard({
   event,
   compact = false,
   className,
+  onClick,
 }: {
   event: Doc<"events">
   compact?: boolean
   className?: string
+  onClick?: (event: Doc<"events">) => void
 }) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={(clickEvent) => {
+        clickEvent.stopPropagation()
+        onClick?.(event)
+      }}
       className={cn(
-        "overflow-hidden rounded-md border border-blue-500/20 bg-blue-500 px-2 py-1 text-xs text-white shadow-sm",
+        "w-full overflow-hidden rounded-md border border-blue-500/20 bg-blue-500 px-2 py-1 text-left text-xs text-white shadow-sm",
         compact ? "truncate" : "space-y-0.5",
         className,
       )}
@@ -26,6 +33,6 @@ export function EventCard({
           {format(event.startAt, "h:mm a")} – {format(event.endAt, "h:mm a")}
         </div>
       )}
-    </div>
+    </button>
   )
 }

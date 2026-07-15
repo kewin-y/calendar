@@ -18,6 +18,7 @@ export function CalendarToolbar({
   onPrevious,
   onNext,
   onViewChange,
+  onCreateEvent,
 }: {
   view: CalendarView
   label: string
@@ -25,11 +26,13 @@ export function CalendarToolbar({
   onPrevious: () => void
   onNext: () => void
   onViewChange: (view: CalendarView) => void
+  onCreateEvent: () => void
 }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">Calendar</h1>
+        <Button onClick={onCreateEvent}>Create</Button>
         <Button variant="outline" onClick={onToday}>
           Today
         </Button>
